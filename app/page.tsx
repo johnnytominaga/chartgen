@@ -37,7 +37,7 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                         <BarChartIcon className="h-8 w-8" />
                         <h1 className="text-2xl font-bold">
-                            Kilonova Chart Generator
+                            Kilonova ChartGen
                         </h1>
                     </div>
                 </div>
