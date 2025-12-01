@@ -23,6 +23,7 @@ interface ChartRendererProps {
   chartType: ChartType
   startAngle?: number
   endAngle?: number
+  barRadius?: number
   className?: string
 }
 
@@ -38,7 +39,7 @@ const COLORS = [
 ]
 
 export const ChartRenderer = forwardRef<HTMLDivElement, ChartRendererProps>(
-  ({ data, chartType, startAngle = 0, endAngle = 360, className = '' }, ref) => {
+  ({ data, chartType, startAngle = 0, endAngle = 360, barRadius = 0, className = '' }, ref) => {
     if (!data || data.length === 0) {
       return (
         <div className={`flex items-center justify-center h-[400px] bg-muted rounded-lg ${className}`}>
@@ -79,7 +80,11 @@ export const ChartRenderer = forwardRef<HTMLDivElement, ChartRendererProps>(
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" fill={COLORS[0]} />
+                <Bar
+                  dataKey="value"
+                  fill={COLORS[0]}
+                  radius={[barRadius, barRadius, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           )

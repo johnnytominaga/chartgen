@@ -8,6 +8,7 @@ import { BarChart as BarChartIcon } from 'lucide-react'
 import { ChartType, ChartDataInput } from '@/types/chart'
 import { ChartTypeSelector } from '@/components/chart/ChartTypeSelector'
 import { ChartAngleControls } from '@/components/chart/ChartAngleControls'
+import { BarChartControls } from '@/components/chart/BarChartControls'
 import { DataTable } from '@/components/chart/DataTable'
 import { CSVUploader } from '@/components/chart/CSVUploader'
 import { ChartRenderer } from '@/components/chart/ChartRenderer'
@@ -20,12 +21,14 @@ export default function Home() {
   const [chartData, setChartData] = useState<ChartDataInput[]>([])
   const [startAngle, setStartAngle] = useState(0)
   const [endAngle, setEndAngle] = useState(360)
+  const [barRadius, setBarRadius] = useState(0)
 
   const handleCSVParsed = (data: ChartDataInput[]) => {
     setChartData(data)
   }
 
   const isPieOrDonut = chartType === 'pie' || chartType === 'donut'
+  const isBar = chartType === 'bar'
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,6 +82,15 @@ export default function Home() {
                     />
                   </div>
                 )}
+
+                {isBar && (
+                  <div className="pt-4 border-t">
+                    <BarChartControls
+                      barRadius={barRadius}
+                      onBarRadiusChange={setBarRadius}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -117,6 +129,7 @@ export default function Home() {
                     chartType={chartType}
                     startAngle={startAngle}
                     endAngle={endAngle}
+                    barRadius={barRadius}
                   />
                 ) : (
                   <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg">

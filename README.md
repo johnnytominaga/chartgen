@@ -5,7 +5,9 @@ A simple, client-side web application for creating beautiful charts from CSV fil
 ## Features
 
 - **Multiple Chart Types**: Create line, bar, pie, and donut charts
+- **Chart Angle Controls**: Customize pie/donut chart angles (full circle, half circle, or custom)
 - **CSV Upload**: Import data directly from CSV files
+- **Bulk Paste**: Copy-paste data from Excel, Sheets, or any text format
 - **Manual Entry**: Add and edit data points through an intuitive table interface
 - **Real-time Preview**: See your chart update as you modify the data
 - **SVG Export**: Download or copy charts as SVG for use anywhere
@@ -52,11 +54,28 @@ That's it! No database setup required.
 
 1. Enter a chart name (e.g., "Monthly Sales")
 2. Select a chart type (line, bar, pie, or donut)
-3. Either:
+3. Add your data using one of three methods:
    - **Upload a CSV file** with label and value columns
-   - **Manually add data** using the "Add Row" button
+   - **Paste data** from Excel, Google Sheets, or any text format
+   - **Manually add rows** using the "Add Row" button
 4. See your chart preview update in real-time
 5. Export as SVG when ready
+
+### Paste Data Feature
+
+Click the "Paste Data" tab in the Chart Data section to bulk import data:
+- Copy data from Excel, Google Sheets, or text files
+- Supports multiple formats: tab-separated, comma-separated, pipe-separated, space-separated
+- Automatically detects and skips header rows
+- Example formats:
+  ```
+  January	100
+  February	150
+
+  Or:
+  January, 100
+  February, 150
+  ```
 
 ### Exporting Charts
 
