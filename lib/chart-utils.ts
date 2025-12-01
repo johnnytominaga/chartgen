@@ -67,8 +67,6 @@ export function downloadSVG(svgString: string, filename: string) {
 }
 
 export async function copySVGToClipboard(svgString: string): Promise<void> {
-  const blob = new Blob([svgString], { type: 'image/svg+xml' })
-  await navigator.clipboard.write([
-    new ClipboardItem({ 'image/svg+xml': blob })
-  ])
+  // Use writeText for better browser compatibility
+  await navigator.clipboard.writeText(svgString)
 }

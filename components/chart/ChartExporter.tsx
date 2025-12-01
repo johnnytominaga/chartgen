@@ -14,6 +14,37 @@ interface ChartExporterProps {
 }
 
 export function ChartExporter({ chartRef, chartName, chartType, disabled }: ChartExporterProps) {
+  const getMainChartSVG = (container: HTMLDivElement): SVGSVGElement | null => {
+    // Get all SVG elements in the container
+    const svgElements = container.querySelectorAll('svg')
+
+    if (svgElements.length === 0) {
+      return null
+    }
+
+    // If there's only one SVG, return it
+    if (svgElements.length === 1) {
+      return svgElements[0]
+    }
+
+    // Find the largest SVG (the main chart, not legend icons)
+    let largestSVG: SVGSVGElement | null = null
+    let maxArea = 0
+
+    svgElements.forEach((svg) => {
+      const width = svg.width.baseVal.value || 0
+      const height = svg.height.baseVal.value || 0
+      const area = width * height
+
+      if (area > maxArea) {
+        maxArea = area
+        largestSVG = svg
+      }
+    })
+
+    return largestSVG
+  }
+
   const handleDownload = () => {
     if (!chartRef.current) {
       toast.error('Chart not found')
@@ -21,7 +52,7 @@ export function ChartExporter({ chartRef, chartName, chartType, disabled }: Char
     }
 
     try {
-      const svgElement = chartRef.current.querySelector('svg')
+      const svgElement = getMainChartSVG(chartRef.current)
       if (!svgElement) {
         toast.error('No SVG element found')
         return
@@ -45,7 +76,7 @@ export function ChartExporter({ chartRef, chartName, chartType, disabled }: Char
     }
 
     try {
-      const svgElement = chartRef.current.querySelector('svg')
+      const svgElement = getMainChartSVG(chartRef.current)
       if (!svgElement) {
         toast.error('No SVG element found')
         return
