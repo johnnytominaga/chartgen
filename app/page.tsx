@@ -1,65 +1,158 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useRef } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { BarChart as BarChartIcon } from 'lucide-react'
+import { ChartType, ChartDataInput } from '@/types/chart'
+import { ChartTypeSelector } from '@/components/chart/ChartTypeSelector'
+import { ChartAngleControls } from '@/components/chart/ChartAngleControls'
+import { DataTable } from '@/components/chart/DataTable'
+import { CSVUploader } from '@/components/chart/CSVUploader'
+import { ChartRenderer } from '@/components/chart/ChartRenderer'
+import { ChartExporter } from '@/components/chart/ChartExporter'
 
 export default function Home() {
+  const chartRef = useRef<HTMLDivElement>(null)
+  const [chartName, setChartName] = useState('My Chart')
+  const [chartType, setChartType] = useState<ChartType>('bar')
+  const [chartData, setChartData] = useState<ChartDataInput[]>([])
+  const [startAngle, setStartAngle] = useState(0)
+  const [endAngle, setEndAngle] = useState(360)
+
+  const handleCSVParsed = (data: ChartDataInput[]) => {
+    setChartData(data)
+  }
+
+  const isPieOrDonut = chartType === 'pie' || chartType === 'donut'
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-2">
+            <BarChartIcon className="h-8 w-8" />
+            <h1 className="text-2xl font-bold">Chart Generator</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2">Create Beautiful Charts</h2>
+          <p className="text-muted-foreground">
+            Upload CSV files or manually enter data to create line, bar, pie, and donut charts.
+            Download or copy them as SVG for use anywhere.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Chart Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="chart-name">Chart Name</Label>
+                  <Input
+                    id="chart-name"
+                    value={chartName}
+                    onChange={(e) => setChartName(e.target.value)}
+                    placeholder="My Awesome Chart"
+                  />
+                </div>
+
+                <ChartTypeSelector
+                  value={chartType}
+                  onChange={(value) => setChartType(value)}
+                />
+
+                {isPieOrDonut && (
+                  <div className="pt-4 border-t">
+                    <ChartAngleControls
+                      startAngle={startAngle}
+                      endAngle={endAngle}
+                      onStartAngleChange={setStartAngle}
+                      onEndAngleChange={setEndAngle}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Data</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CSVUploader onDataParsed={handleCSVParsed} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Chart Data</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  data={chartData}
+                  onChange={setChartData}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:sticky lg:top-8 lg:h-fit space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {chartData.length > 0 ? (
+                  <ChartRenderer
+                    ref={chartRef}
+                    data={chartData}
+                    chartType={chartType}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg">
+                    <p className="text-muted-foreground">
+                      Add data to see your chart
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {chartData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Export</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartExporter
+                    chartRef={chartRef}
+                    chartName={chartName}
+                    chartType={chartType}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </main>
+
+      <footer className="border-t mt-16">
+        <div className="container mx-auto px-4 py-6">
+          <p className="text-center text-sm text-muted-foreground">
+            Create charts instantly without any database or account needed
+          </p>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
