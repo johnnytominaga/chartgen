@@ -46,12 +46,12 @@ export default function Home() {
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h2 className="text-3xl font-bold mb-2">
-                        Create Beautiful Charts
+                        Create Charts for Figma
                     </h2>
                     <p className="text-muted-foreground">
                         Upload CSV files or manually enter data to create line,
                         bar, pie, and donut charts. Download or copy them as SVG
-                        for use anywhere.
+                        and paste them into Figma to edit colors, fonts, etc.
                     </p>
                 </div>
 
