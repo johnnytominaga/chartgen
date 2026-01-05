@@ -1,5 +1,39 @@
 import { ChartDataInput } from '@/types/chart'
 
+function parseNumericValue(rawValue: unknown): number {
+  if (typeof rawValue === 'number') {
+    return Number.isFinite(rawValue) ? rawValue : NaN
+  }
+
+  if (typeof rawValue !== 'string') {
+    return NaN
+  }
+
+  const trimmed = rawValue.trim()
+  if (!trimmed) {
+    return NaN
+  }
+
+  let isNegative = false
+  let cleaned = trimmed
+  if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
+    isNegative = true
+    cleaned = cleaned.slice(1, -1)
+  }
+
+  cleaned = cleaned.replace(/[^0-9.+-Ee]/g, '')
+  if (!cleaned) {
+    return NaN
+  }
+
+  const parsed = Number(cleaned)
+  if (!Number.isFinite(parsed)) {
+    return NaN
+  }
+
+  return isNegative ? -parsed : parsed
+}
+
 export function validateCSVData(parsedData: unknown[]): ChartDataInput[] {
   if (!Array.isArray(parsedData) || parsedData.length === 0) {
     throw new Error('CSV file is empty or invalid')
@@ -28,7 +62,7 @@ export function validateCSVData(parsedData: unknown[]): ChartDataInput[] {
     }
 
     const label = String(row[labelKey] || '').trim()
-    const value = Number(row[valueKey])
+    const value = parseNumericValue(row[valueKey])
 
     if (!label) {
       throw new Error(`Row ${i + 1}: Label is empty`)
