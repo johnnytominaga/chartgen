@@ -1,4 +1,4 @@
-import { ChartDataInput } from '@/types/chart'
+import { ChartDataInput, CSVHeaderMode } from '@/types/chart'
 
 function parseNumericValue(rawValue: unknown): number {
   if (typeof rawValue === 'number') {
@@ -21,6 +21,20 @@ function parseNumericValue(rawValue: unknown): number {
     cleaned = cleaned.slice(1, -1)
   }
 
+  cleaned = cleaned.replace(/\s|\u00a0/g, '')
+  if (cleaned.endsWith('-')) {
+    isNegative = true
+    cleaned = cleaned.slice(0, -1)
+  }
+
+  const hasComma = cleaned.includes(',')
+  const hasDot = cleaned.includes('.')
+  if (hasComma && !hasDot && /,\d{1,2}$/.test(cleaned)) {
+    cleaned = cleaned.replace(',', '.')
+  } else if (hasComma) {
+    cleaned = cleaned.replace(/,/g, '')
+  }
+
   cleaned = cleaned.replace(/[^0-9.+-Ee]/g, '')
   if (!cleaned) {
     return NaN
@@ -32,6 +46,79 @@ function parseNumericValue(rawValue: unknown): number {
   }
 
   return isNegative ? -parsed : parsed
+}
+
+function findHeaderRowIndex(
+  rows: string[][],
+  candidates: string[],
+): number | null {
+  for (let i = 0; i < rows.length; i++) {
+    const headerCell = rows[i][0]?.toLowerCase() ?? ''
+    if (candidates.some((candidate) => headerCell.includes(candidate))) {
+      return i
+    }
+  }
+
+  return null
+}
+
+function parseColumnHeaderCSVData(parsedData: unknown[]): ChartDataInput[] {
+  if (!Array.isArray(parsedData) || parsedData.length === 0) {
+    throw new Error('CSV file is empty or invalid')
+  }
+
+  const rows = parsedData
+    .map((row) =>
+      Array.isArray(row)
+        ? row.map((cell) => String(cell ?? '').trim())
+        : []
+    )
+    .filter((row) => row.some((cell) => cell.length > 0))
+
+  if (rows.length < 2) {
+    throw new Error('CSV must include at least two rows for labels and values')
+  }
+
+  const labelRowIndex =
+    findHeaderRowIndex(rows, ['label', 'name', 'category']) ?? 0
+  const valueRowIndex =
+    findHeaderRowIndex(rows, ['value', 'amount', 'count']) ??
+    (labelRowIndex === 0 ? 1 : 0)
+
+  if (labelRowIndex === valueRowIndex) {
+    throw new Error('CSV must include separate label and value rows')
+  }
+
+  const labelRow = rows[labelRowIndex]
+  const valueRow = rows[valueRowIndex]
+  const columnCount = Math.max(labelRow.length, valueRow.length)
+  const result: ChartDataInput[] = []
+
+  for (let i = 1; i < columnCount; i++) {
+    const label = String(labelRow[i] ?? '').trim()
+    const rawValue = valueRow[i]
+
+    if (!label && (!rawValue || String(rawValue).trim().length === 0)) {
+      continue
+    }
+
+    if (!label) {
+      throw new Error(`Column ${i + 1}: Label is empty`)
+    }
+
+    const value = parseNumericValue(rawValue)
+    if (isNaN(value)) {
+      throw new Error(`Column ${i + 1}: Value is not a valid number`)
+    }
+
+    result.push({ label, value })
+  }
+
+  if (result.length === 0) {
+    throw new Error('No valid label/value pairs found in CSV')
+  }
+
+  return result
 }
 
 export function validateCSVData(parsedData: unknown[]): ChartDataInput[] {
@@ -76,6 +163,15 @@ export function validateCSVData(parsedData: unknown[]): ChartDataInput[] {
   }
 
   return result
+}
+
+export function parseCSVData(
+  parsedData: unknown[],
+  headerMode: CSVHeaderMode,
+): ChartDataInput[] {
+  return headerMode === 'column'
+    ? parseColumnHeaderCSVData(parsedData)
+    : validateCSVData(parsedData)
 }
 
 export function generateSVGString(svgElement: SVGSVGElement): string {

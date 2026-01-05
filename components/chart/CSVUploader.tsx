@@ -4,16 +4,21 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, FileText, X } from 'lucide-react'
 import Papa from 'papaparse'
-import { ChartDataInput } from '@/types/chart'
-import { validateCSVData } from '@/lib/chart-utils'
+import { ChartDataInput, CSVHeaderMode } from '@/types/chart'
+import { parseCSVData } from '@/lib/chart-utils'
 import { toast } from 'sonner'
 
 interface CSVUploaderProps {
   onDataParsed: (data: ChartDataInput[]) => void
+  headerMode: CSVHeaderMode
   disabled?: boolean
 }
 
-export function CSVUploader({ onDataParsed, disabled }: CSVUploaderProps) {
+export function CSVUploader({
+  onDataParsed,
+  headerMode,
+  disabled,
+}: CSVUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -35,11 +40,11 @@ export function CSVUploader({ onDataParsed, disabled }: CSVUploaderProps) {
     setIsLoading(true)
 
     Papa.parse(file, {
-      header: true,
+      header: headerMode === 'row',
       skipEmptyLines: true,
       complete: (results) => {
         try {
-          const validatedData = validateCSVData(results.data)
+          const validatedData = parseCSVData(results.data, headerMode)
           onDataParsed(validatedData)
           toast.success(`Successfully loaded ${validatedData.length} rows from CSV`)
         } catch (error) {
@@ -102,7 +107,8 @@ export function CSVUploader({ onDataParsed, disabled }: CSVUploaderProps) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        CSV should have columns for labels and values. First two columns will be used if no standard headers found.
+        CSV should have labels and values. Choose header mode to match your file
+        layout.
       </p>
     </div>
   )

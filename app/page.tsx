@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BarChart as BarChartIcon } from "lucide-react";
-import { ChartType, ChartDataInput } from "@/types/chart";
+import { ChartType, ChartDataInput, CSVHeaderMode } from "@/types/chart";
 import { ChartTypeSelector } from "@/components/chart/ChartTypeSelector";
+import { CSVHeaderSelector } from "@/components/chart/CSVHeaderSelector";
 import { ChartAngleControls } from "@/components/chart/ChartAngleControls";
 import { BarChartControls } from "@/components/chart/BarChartControls";
 import { DataTable } from "@/components/chart/DataTable";
@@ -19,6 +20,8 @@ export default function Home() {
     const [chartName, setChartName] = useState("My Chart");
     const [chartType, setChartType] = useState<ChartType>("bar");
     const [chartData, setChartData] = useState<ChartDataInput[]>([]);
+    const [csvHeaderMode, setCsvHeaderMode] =
+        useState<CSVHeaderMode>("row");
     const [startAngle, setStartAngle] = useState(0);
     const [endAngle, setEndAngle] = useState(360);
     const [barRadius, setBarRadius] = useState(0);
@@ -80,6 +83,10 @@ export default function Home() {
                                     value={chartType}
                                     onChange={(value) => setChartType(value)}
                                 />
+                                <CSVHeaderSelector
+                                    value={csvHeaderMode}
+                                    onChange={(value) => setCsvHeaderMode(value)}
+                                />
 
                                 {isPieOrDonut && (
                                     <div className="pt-4 border-t">
@@ -108,7 +115,10 @@ export default function Home() {
                                 <CardTitle>Upload Data</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <CSVUploader onDataParsed={handleCSVParsed} />
+                                <CSVUploader
+                                    onDataParsed={handleCSVParsed}
+                                    headerMode={csvHeaderMode}
+                                />
                             </CardContent>
                         </Card>
 
