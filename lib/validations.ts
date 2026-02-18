@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const chartTypeSchema = z.enum(['line', 'bar', 'pie', 'donut'])
+export const chartTypeSchema = z.enum(['line', 'bar', 'area', 'stacked-bar', 'pie', 'donut'])
 
 export const chartDataInputSchema = z.object({
   label: z.string().min(1, 'Label is required'),

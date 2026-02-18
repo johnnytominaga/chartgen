@@ -1,4 +1,4 @@
-import { ChartDataInput, CSVHeaderMode } from '@/types/chart'
+import { ChartDataInput, MultiSeriesDataInput, CSVHeaderMode } from '@/types/chart'
 
 function parseNumericValue(rawValue: unknown): number {
   if (typeof rawValue === 'number') {
@@ -121,6 +121,81 @@ function parseColumnHeaderCSVData(parsedData: unknown[]): ChartDataInput[] {
   return result
 }
 
+function parseMultiSeriesColumnHeader(parsedData: unknown[]): { data: MultiSeriesDataInput[]; seriesNames: string[] } {
+  if (!Array.isArray(parsedData) || parsedData.length === 0) {
+    throw new Error('CSV file is empty or invalid')
+  }
+
+  const rows = parsedData
+    .map((row) =>
+      Array.isArray(row)
+        ? row.map((cell) => String(cell ?? '').trim())
+        : []
+    )
+    .filter((row) => row.some((cell) => cell.length > 0))
+
+  if (rows.length < 2) {
+    throw new Error('CSV must include at least a header row and one data row')
+  }
+
+  // First row = series names (first cell is label header), remaining rows = categories
+  const seriesNames = rows[0].slice(1).filter((name) => name.length > 0)
+  if (seriesNames.length === 0) {
+    throw new Error('No series names found in the first row')
+  }
+
+  const data: MultiSeriesDataInput[] = []
+  for (let i = 1; i < rows.length; i++) {
+    const label = rows[i][0] || `Item ${i}`
+    const values: Record<string, number> = {}
+    seriesNames.forEach((name, j) => {
+      const val = parseNumericValue(rows[i][j + 1])
+      values[name] = isNaN(val) ? 0 : val
+    })
+    data.push({ label, values })
+  }
+
+  return { data, seriesNames }
+}
+
+function parseMultiSeriesRowHeader(parsedData: unknown[]): { data: MultiSeriesDataInput[]; seriesNames: string[] } {
+  if (!Array.isArray(parsedData) || parsedData.length === 0) {
+    throw new Error('CSV file is empty or invalid')
+  }
+
+  // parsedData is an array of objects with header keys
+  const rows = parsedData as Record<string, unknown>[]
+  const keys = Object.keys(rows[0] || {})
+
+  if (keys.length < 2) {
+    throw new Error('CSV must have at least a label column and one series column')
+  }
+
+  const labelKey = keys[0]
+  const seriesNames = keys.slice(1)
+
+  const data: MultiSeriesDataInput[] = rows.map((row, i) => {
+    const label = String(row[labelKey] ?? '').trim() || `Item ${i + 1}`
+    const values: Record<string, number> = {}
+    seriesNames.forEach((name) => {
+      const val = parseNumericValue(row[name])
+      values[name] = isNaN(val) ? 0 : val
+    })
+    return { label, values }
+  })
+
+  return { data, seriesNames }
+}
+
+export function parseMultiSeriesCSVData(
+  parsedData: unknown[],
+  headerMode: CSVHeaderMode,
+): { data: MultiSeriesDataInput[]; seriesNames: string[] } {
+  return headerMode === 'column'
+    ? parseMultiSeriesColumnHeader(parsedData)
+    : parseMultiSeriesRowHeader(parsedData)
+}
+
 export function validateCSVData(parsedData: unknown[]): ChartDataInput[] {
   if (!Array.isArray(parsedData) || parsedData.length === 0) {
     throw new Error('CSV file is empty or invalid')
@@ -174,9 +249,16 @@ export function parseCSVData(
     : validateCSVData(parsedData)
 }
 
-export function generateSVGString(svgElement: SVGSVGElement): string {
+export function generateSVGString(svgElement: SVGSVGElement, fontFamily?: string): string {
   const serializer = new XMLSerializer()
   let svgString = serializer.serializeToString(svgElement)
+
+  // Inject Google Font import into SVG for portable exports
+  if (fontFamily) {
+    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;500;600;700&amp;display=swap`
+    const fontDefs = `<defs><style>@import url('${fontUrl}');</style></defs>`
+    svgString = svgString.replace(/<svg([^>]*)>/, `<svg$1>${fontDefs}`)
+  }
 
   // Add XML declaration
   svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString

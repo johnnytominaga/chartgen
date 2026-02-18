@@ -32,6 +32,16 @@ const chartTypeOptions: {
         description: "Compare values across categories",
     },
     {
+        value: "area",
+        label: "Area Chart",
+        description: "Show trends with filled area",
+    },
+    {
+        value: "stacked-bar",
+        label: "Stacked Bar Chart",
+        description: "Compare composition across categories",
+    },
+    {
         value: "pie",
         label: "Pie Chart",
         description: "Show proportions of a whole",

@@ -43,6 +43,7 @@ next-env.d.ts
 # AI
 AGENTS.md
 CLAUDE.md
+/.claude
 
 #Sample Data
 /sample

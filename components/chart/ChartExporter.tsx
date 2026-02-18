@@ -10,10 +10,11 @@ interface ChartExporterProps {
   chartRef: RefObject<HTMLDivElement | null>
   chartName: string
   chartType: string
+  fontFamily?: string
   disabled?: boolean
 }
 
-export function ChartExporter({ chartRef, chartName, chartType, disabled }: ChartExporterProps) {
+export function ChartExporter({ chartRef, chartName, chartType, fontFamily, disabled }: ChartExporterProps) {
   const getMainChartSVG = (container: HTMLDivElement): SVGSVGElement | null => {
     // Get all SVG elements in the container
     const svgElements = container.querySelectorAll('svg')
@@ -58,7 +59,7 @@ export function ChartExporter({ chartRef, chartName, chartType, disabled }: Char
         return
       }
 
-      const svgString = generateSVGString(svgElement)
+      const svgString = generateSVGString(svgElement, fontFamily)
       const timestamp = new Date().toISOString().slice(0, 10)
       const filename = `${chartName.replace(/\s+/g, '-')}-${chartType}-${timestamp}.svg`
 
@@ -82,7 +83,7 @@ export function ChartExporter({ chartRef, chartName, chartType, disabled }: Char
         return
       }
 
-      const svgString = generateSVGString(svgElement)
+      const svgString = generateSVGString(svgElement, fontFamily)
       await copySVGToClipboard(svgString)
       toast.success('Chart copied to clipboard')
     } catch (error) {
